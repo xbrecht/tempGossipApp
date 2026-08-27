@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>LEF 2026 Gossip App</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #070d1e;
+      --bg-card: rgba(14, 25, 54, 0.75);
+      --bg-card-border: rgba(0, 180, 216, 0.25);
+      --sun-gold: #ffbe0b;
+      --med-cyan: #00b4d8;
+      --deep-azure: #0077b6;
+      --olive-green: #70e000;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --danger: #ef4444;
+      --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 15%, rgba(255, 190, 11, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 90% 85%, rgba(0, 180, 216, 0.15) 0%, transparent 45%),
+        radial-gradient(circle at 50% 50%, rgba(112, 224, 0, 0.05) 0%, transparent 60%);
+      color: var(--text-main);
+      font-family: var(--font-main);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      overflow-x: hidden;
+    }
+
+    /* Mobile Container Frame */
+    .app-container {
+      width: 100%;
+      max-width: 440px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      padding-bottom: 90px;
+      background: rgba(7, 13, 30, 0.6);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(255, 255, 255, 0.05);
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Header */
+    header {
+      padding: 20px 20px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: sticky;
+      top: 0;
+      background: rgba(7, 13, 30, 0.85);
+      backdrop-filter: blur(12px);
+      z-index: 50;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-badge {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--sun-gold), var(--med-cyan));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(0, 180, 216, 0.3);
+    }
+
+    .brand-title {
+      font-size: 1.15rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ffd166 0%, #00b4d8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 0.68rem;
+      color: var(--olive-green);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .export-btn {
+      background: rgba(0, 180, 216, 0.15);
+      border: 1px solid var(--med-cyan);
+      color: var(--med-cyan);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .export-btn:active {
+      transform: scale(0.95);
+      background: var(--med-cyan);
+      color: #000;
+    }
+
+    /* Views */
+    .view {
+      display: none;
+      padding: 18px 20px;
+      animation: fadeIn 0.25s ease forwards;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Hero Banner */
+    .hero-banner {
+      background: linear-gradient(145deg, rgba(255, 190, 11, 0.1), rgba(0, 180, 216, 0.08));
+      border: 1px solid var(--bg-card-border);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-banner::after {
+      content: "🫒";
+      position: absolute;
+      right: -10px;
+      bottom: -15px;
+      font-size: 4rem;
+      opacity: 0.2;
+      transform: rotate(-15deg);
+    }
+
+    .hero-banner h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+
+    .hero-banner p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* Feed Filter */
+    .filter-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 16px;
+      scrollbar-width: none;
+    }
+    .filter-scroll::-webkit-scrollbar { display: none; }
+
+    .chip {
+      padding: 6px 14px;
+      border-radius: 50px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .chip.active {
+      background: linear-gradient(90deg, var(--sun-gold), var(--med-cyan));
+      border-color: transparent;
+      color: #070d1e;
+      font-weight: 700;
+    }
+
+    /* Gossip Cards */
+    .gossip-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .gossip-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      padding: 16px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+      position: relative;
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .card-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(112, 224, 0, 0.15);
+      color: var(--olive-green);
+      border: 1px solid rgba(112, 224, 0, 0.3);
+    }
+
+    .card-time {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .card-text {
+      font-size: 0.92rem;
+      line-height: 1.5;
+      color: #e2e8f0;
+      margin-bottom: 12px;
+      word-wrap: break-word;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+      padding-top: 10px;
+    }
+
+    .reaction-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      border-radius: 20px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .reaction-btn:active {
+      transform: scale(1.1);
+      background: rgba(255, 190, 11, 0.2);
+      color: var(--sun-gold);
+    }
+
+    /* Form Page */
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #cbd5e1;
+      letter-spacing: 0.02em;
+    }
+
+    .form-select, .form-textarea {
+      width: 100%;
+      background: rgba(14, 25, 54, 0.85);
+      border: 1px solid var(--bg-card-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .form-select:focus, .form-textarea:focus {
+      border-color: var(--med-cyan);
+      box-shadow: 0 0 0 2px rgba(0, 180, 216, 0.2);
+    }
+
+    .form-textarea {
+      min-height: 140px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .char-count {
+      text-align: right;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .disclaimer-card {
+      background: rgba(255, 190, 11, 0.08);
+      border: 1px dashed rgba(255, 190, 11, 0.4);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 0.75rem;
+      color: #fef08a;
+      line-height: 1.4;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--sun-gold) 0%, var(--med-cyan) 100%);
+      border: none;
+      border-radius: 12px;
+      color: #070d1e;
+      font-weight: 800;
+      font-size: 0.95rem;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0, 180, 216, 0.35);
+      transition: transform 0.15s ease, opacity 0.2s ease;
+    }
+
+    .submit-btn:active {
+      transform: scale(0.98);
+      opacity: 0.9;
+    }
+
+    /* Bottom Navigation */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 100%;
+      max-width: 440px;
+      background: rgba(7, 13, 30, 0.92);
+      backdrop-filter: blur(16px);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 12px 14px;
+      z-index: 100;
+    }
+
+    .nav-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px 0;
+      font-size: 0.72rem;
+      font-weight: 600;
+      transition: all 0.2s ease;
+    }
+
+    .nav-item svg {
+      width: 22px;
+      height: 22px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      transition: stroke 0.2s ease;
+    }
+
+    .nav-item.active {
+      color: var(--med-cyan);
+    }
+
+    .nav-item.active svg {
+      stroke: var(--sun-gold);
+    }
+
+    /* Toast Notification */
+    .toast {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-100px);
+      background: #0f172a;
+      border: 1px solid var(--olive-green);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Top Bar -->
+    <header>
+      <div class="brand-group">
+        <div class="brand-badge">🏛️</div>
+        <div>
+          <div class="brand-title">LEF 2026 GOSSIP</div>
+          <div class="brand-subtitle">51st Edition • Tunisia</div>
+        </div>
+      </div>
+      <button class="export-btn" id="exportBtn" title="Export all entries to CSV">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        CSV
+      </button>
+    </header>
+
+    <!-- FEED VIEW (Landing Page) -->
+    <main id="feedView" class="view active">
+      <div class="hero-banner">
+        <h2>Spill the Mediterranean Tea 🫖</h2>
+        <p>100% Anonymous. What happens in Tunisia stays on the LEF 2026 feed.</p>
+      </div>
+
+      <!-- Categories Filter -->
+      <div class="filter-scroll" id="categoryFilter">
+        <button class="chip active" data-filter="all">All Tea 🔥</button>
+        <button class="chip" data-filter="Gala & Parties">Gala & Parties 🎉</button>
+        <button class="chip" data-filter="Workshops & Talks">Workshops & Talks 🎙️</button>
+        <button class="chip" data-filter="Crushes & Flirts">Crushes & Drama 💘</button>
+        <button class="chip" data-filter="Hotel & Travel">Hotel & Travel 🏨</button>
+      </div>
+
+      <!-- Cards Container -->
+      <div class="gossip-list" id="gossipList"></div>
+    </main>
+
+    <!-- SUBMIT VIEW -->
+    <section id="submitView" class="view">
+      <div class="hero-banner" style="background: linear-gradient(145deg, rgba(0, 180, 216, 0.1), rgba(112, 224, 0, 0.08));">
+        <h2>Anonymous Tea Drop 🤫</h2>
+        <p>No IP tracking. No names. Pure unfiltered LEF 2026 updates.</p>
+      </div>
+
+      <form id="gossipForm">
+        <div class="form-group">
+          <label class="form-label" for="categoryInput">Category</label>
+          <select id="categoryInput" class="form-select" required>
+            <option value="Gala & Parties">Gala & Parties 🎉</option>
+            <option value="Workshops & Talks">Workshops & Talks 🎙️</option>
+            <option value="Crushes & Flirts">Crushes & Drama 💘</option>
+            <option value="Hotel & Travel">Hotel & Travel 🏨</option>
+            <option value="General Gossip">General Tea 🫖</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="gossipTextInput">Your Gossip / Confession</label>
+          <textarea 
+            id="gossipTextInput" 
+            class="form-textarea" 
+            placeholder="Drop the hottest take or behind-the-scenes drama..." 
+            maxlength="400" 
+            required></textarea>
+          <div class="char-count"><span id="charCount">0</span>/400</div>
+        </div>
+
+        <div class="disclaimer-card">
+          <span>🔒</span>
+          <span>Submitted data is strictly anonymized and stored locally for CSV generation.</span>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <span>Drop Secret</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </form>
+    </section>
+
+    <!-- Floating Mobile Bottom Nav -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" id="navFeed">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        <span>Live Feed</span>
+      </button>
+      <button class="nav-item" id="navSubmit">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+        <span>Spill Tea</span>
+      </button>
+    </nav>
+  </div>
+
+  <div id="toast" class="toast">✨ Secret added anonymously!</div>
+
+  <script>
+    // Initial dataset if empty
+    const INITIAL_DATA = [
+      {
+        id: "LEF-101",
+        category: "Gala & Parties",
+        text: "Someone was seen sneaking out with the entire bowl of Tunisian baklava from the VIP lounge at 2 AM.",
+        timestamp: "2026-08-27 10:15:00",
+        upvotes: 18
+      },
+      {
+        id: "LEF-102",
+        category: "Crushes & Flirts",
+        text: "The keynote speaker on AI ethics definitely made eye contact with table 4 during the whole Q&A session.",
+        timestamp: "2026-08-27 11:02:00",
+        upvotes: 27
+      }
+    ];
+
+    // Local Storage Management
+    function getStoredGossip() {
+      const stored = localStorage.getItem('lef_2026_gossip');
+      if (!stored) {
+        localStorage.setItem('lef_2026_gossip', JSON.stringify(INITIAL_DATA));
+        return INITIAL_DATA;
+      }
+      return JSON.parse(stored);
+    }
+
+    function saveGossip(data) {
+      localStorage.setItem('lef_2026_gossip', JSON.stringify(data));
+    }
+
+    // Navigation Logic
+    const feedView = document.getElementById('feedView');
+    const submitView = document.getElementById('submitView');
+    const navFeed = document.getElementById('navFeed');
+    const navSubmit = document.getElementById('navSubmit');
+
+    function switchView(target) {
+      if (target === 'feed') {
+        feedView.classList.add('active');
+        submitView.classList.remove('active');
+        navFeed.classList.add('active');
+        navSubmit.classList.remove('active');
+        renderFeed();
+      } else {
+        feedView.classList.remove('active');
+        submitView.classList.add('active');
+        navFeed.classList.remove('active');
+        navSubmit.classList.add('active');
+      }
+    }
+
+    navFeed.addEventListener('click', () => switchView('feed'));
+    navSubmit.addEventListener('click', () => switchView('submit'));
+
+    // Character counter
+    const textarea = document.getElementById('gossipTextInput');
+    const charCount = document.getElementById('charCount');
+    textarea.addEventListener('input', () => {
+      charCount.textContent = textarea.value.length;
+    });
+
+    // Render Feed
+    let currentFilter = 'all';
+    function renderFeed() {
+      const gossipList = document.getElementById('gossipList');
+      const data = getStoredGossip();
+      
+      const filtered = currentFilter === 'all' 
+        ? data 
+        : data.filter(item => item.category.toLowerCase().includes(currentFilter.toLowerCase()));
+
+      if (filtered.length === 0) {
+        gossipList.innerHTML = `<div class="empty-state">No tea spilled under this category yet. Be the first! ☕</div>`;
+        return;
+      }
+
+      gossipList.innerHTML = filtered.map(item => `
+        <div class="gossip-card" data-id="${item.id}">
+          <div class="card-meta">
+            <span class="card-tag">${escapeHtml(item.category)}</span>
+            <span class="card-time">${formatTime(item.timestamp)}</span>
+          </div>
+          <div class="card-text">${escapeHtml(item.text)}</div>
+          <div class="card-footer">
+            <button class="reaction-btn" onclick="handleUpvote('${item.id}')">
+              🔥 <span id="votes-${item.id}">${item.upvotes || 0}</span>
+            </button>
+            <span style="font-size:0.7rem; color:var(--text-muted);">#${item.id}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function formatTime(isoStr) {
+      const d = new Date(isoStr.replace(" ", "T"));
+      return isNaN(d.getTime()) ? isoStr : d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    }
+
+    // Upvote handler
+    window.handleUpvote = function(id) {
+      const data = getStoredGossip();
+      const target = data.find(item => item.id === id);
+      if (target) {
+        target.upvotes = (target.upvotes || 0) + 1;
+        saveGossip(data);
+        const countSpan = document.getElementById(`votes-${id}`);
+        if (countSpan) countSpan.textContent = target.upvotes;
+      }
+    };
+
+    // Filter Chips
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', (e) => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        e.target.classList.add('active');
+        currentFilter = e.target.getAttribute('data-filter');
+        renderFeed();
+      });
+    });
+
+    // Form Submission
+    const form = document.getElementById('gossipForm');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const category = document.getElementById('categoryInput').value;
+      const text = textarea.value.trim();
+
+      if (!text) return;
+
+      const now = new Date();
+      const timestamp = now.getFullYear() + "-" + 
+        String(now.getMonth() + 1).padStart(2, '0') + "-" + 
+        String(now.getDate()).padStart(2, '0') + " " + 
+        String(now.getHours()).padStart(2, '0') + ":" + 
+        String(now.getMinutes()).padStart(2, '0') + ":" + 
+        String(now.getSeconds()).padStart(2, '0');
+
+      const newEntry = {
+        id: "LEF-" + Math.floor(100 + Math.random() * 900),
+        category: category,
+        text: text,
+        timestamp: timestamp,
+        upvotes: 0
+      };
+
+      const data = getStoredGossip();
+      data.unshift(newEntry);
+      saveGossip(data);
+
+      form.reset();
+      charCount.textContent = "0";
+      showToast("✨ Secret posted anonymously!");
+      switchView('feed');
+    });
+
+    // Toast Function
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // CSV Export Logic
+    document.getElementById('exportBtn').addEventListener('click', () => {
+      const data = getStoredGossip();
+      if (!data || data.length === 0) {
+        showToast("No data available to export!");
+        return;
+      }
+
+      // Format to CSV with proper escaping
+      const headers = ["ID", "Category", "Gossip Text", "Timestamp", "Upvotes"];
+      const rows = data.map(item => [
+        `"${(item.id || '').replace(/"/g, '""')}"`,
+        `"${(item.category || '').replace(/"/g, '""')}"`,
+        `"${(item.text || '').replace(/"/g, '""')}"`,
+        `"${(item.timestamp || '').replace(/"/g, '""')}"`,
+        item.upvotes || 0
+      ]);
+
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `LEF_2026_Tunisia_Gossip_${new Date().toISOString().slice(0,10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast("📁 CSV successfully downloaded!");
+    });
+
+    // Initial render
+    renderFeed();
+  </script>
+</body>
+</html>
