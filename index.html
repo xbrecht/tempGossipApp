@@ -450,8 +450,10 @@
 
     .empty-state {
       text-align: center;
-      padding: 40px 20px;
+      padding: 50px 20px;
       color: var(--text-muted);
+      font-size: 0.9rem;
+      line-height: 1.6;
     }
   </style>
 </head>
@@ -551,30 +553,12 @@
   <div id="toast" class="toast">✨ Secret added anonymously!</div>
 
   <script>
-    // Initial dataset if empty
-    const INITIAL_DATA = [
-      {
-        id: "LEF-101",
-        category: "Gala & Parties",
-        text: "Someone was seen sneaking out with the entire bowl of Tunisian baklava from the VIP lounge at 2 AM.",
-        timestamp: "2026-08-27 10:15:00",
-        upvotes: 18
-      },
-      {
-        id: "LEF-102",
-        category: "Crushes & Flirts",
-        text: "The keynote speaker on AI ethics definitely made eye contact with table 4 during the whole Q&A session.",
-        timestamp: "2026-08-27 11:02:00",
-        upvotes: 27
-      }
-    ];
-
-    // Local Storage Management
+    // Storage helpers (initialized completely empty)
     function getStoredGossip() {
       const stored = localStorage.getItem('lef_2026_gossip');
       if (!stored) {
-        localStorage.setItem('lef_2026_gossip', JSON.stringify(INITIAL_DATA));
-        return INITIAL_DATA;
+        localStorage.setItem('lef_2026_gossip', JSON.stringify([]));
+        return [];
       }
       return JSON.parse(stored);
     }
@@ -625,7 +609,11 @@
         : data.filter(item => item.category.toLowerCase().includes(currentFilter.toLowerCase()));
 
       if (filtered.length === 0) {
-        gossipList.innerHTML = `<div class="empty-state">No tea spilled under this category yet. Be the first! ☕</div>`;
+        gossipList.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size: 2.2rem; margin-bottom: 8px;">🫖</div>
+            <p>No tea spilled yet.<br>Tap <strong>Spill Tea</strong> below to drop the first confession!</p>
+          </div>`;
         return;
       }
 
@@ -728,7 +716,6 @@
         return;
       }
 
-      // Format to CSV with proper escaping
       const headers = ["ID", "Category", "Gossip Text", "Timestamp", "Upvotes"];
       const rows = data.map(item => [
         `"${(item.id || '').replace(/"/g, '""')}"`,
